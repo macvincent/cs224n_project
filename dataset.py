@@ -32,8 +32,8 @@ class CipherDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-        x = torch.from_numpy(self.reviews[idx]).to(torch.long)
-        y = torch.tensor([self.index_to_flipped[int(i)] for i in x], dtype=torch.long)
+        y = torch.from_numpy(self.reviews[idx]).to(torch.long)
+        x= torch.tensor([self.index_to_flipped[int(i)] for i in y], dtype=torch.long)
         return x, y
     
 """
