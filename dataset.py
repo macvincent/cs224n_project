@@ -4,6 +4,8 @@ import random
 import numpy as np
 import torch
 import argparse
+import json
+from tqdm import tqdm
 
 class CipherDataset(Dataset):
     def __init__(self, initial_vocab_path, reviews_path):
@@ -49,10 +51,30 @@ if __name__ == '__main__':
 
     if args.dataset_type == 'cipher':
         ciper_dataset = CipherDataset('./data/initial_vocab.pkl', './data/sentiment_dataset_reviews.txt')
-        for _, example in zip(range(4), ciper_dataset):
-            x, y = example
-            print('x:', ' '.join([ciper_dataset.index_to_word[int(c)] for c in x]))
-            print('y:', ' '.join([ciper_dataset.index_to_word[int(c)] for c in y]))
+        output_file_path = "cipher_data.jsonl"
+        num_dataset = 12000
+        train_num = 0.8 * num_dataset
+        prompt = "decipher this sentence into a readable version"
+        test_input = []
+        test_output = []
+        print("start conversion...")
+
+        with open(output_file_path, 'w') as output_file:
+            for i, example in tqdm(zip(range(num_dataset), ciper_dataset)):
+                x, y = example
+                input = ' '.join([ciper_dataset.index_to_word[int(c)] for c in x]).replace(u'\u25A1','').strip() 
+                output = ' '.join([ciper_dataset.index_to_word[int(c)] for c in y]).replace(u'\u25A1','').strip()
+                if i < train_num:
+                    data = {"text":f'''[INST] {input} [/INST] {output} </s>'''}
+                    output_file.write(json.dumps(data) + '\n')
+                else:
+                    test_input.append(f'''[INST] {input} [/INST] ''')
+                    test_output.append(f'''{output} </s>''')
+
+        test_dataset = [test_input, test_output]
+        with open('test_dataset.pickle', 'wb') as handle:
+            pickle.dump(test_dataset, handle)
+
     else:
         raise ValueError("Unknown dataset type in command line args: {}"
                 .format(args.dataset_type))
