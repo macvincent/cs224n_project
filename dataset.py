@@ -15,7 +15,8 @@ class CipherDataset(Dataset):
         index_to_word = {index : word for word, index in original_vocab.items()}
         next_index = len(original_vocab)
         
-        self.indexes_to_be_flipped = random.sample(range(2, next_index), next_index//4)
+        self.indexes_to_be_flipped = random.sample(range(2, next_index), next_index//9)
+        print(f"We are flipping: {len(self.indexes_to_be_flipped)} words")
         self.vocab = original_vocab.copy()
         self.index_to_flipped = {i : i for i in range(0, next_index)}
     
@@ -27,17 +28,19 @@ class CipherDataset(Dataset):
             next_index += 1
         
         self.index_to_word = {index : word for word, index in self.vocab.items()}
+        print(f"We have a vocab size of: {len(self.index_to_word)}")
         self.reviews = np.loadtxt(reviews_path)
+        print(f"We have a dataset size of: {len(self.reviews)}")
 
     def __len__(self):
         # returns the length of the dataset
-        return len(self.data)
+        return len(self.reviews)
 
     def __getitem__(self, idx):
         y = torch.from_numpy(self.reviews[idx]).to(torch.long)
-        x= torch.tensor([self.index_to_flipped[int(i)] for i in y], dtype=torch.long)
+        x = torch.tensor([self.index_to_flipped[int(i)] for i in y], dtype=torch.long)
         return x, y
-    
+
 """
 Code under here is strictly for your debugging purposes; feel free to modify
 as desired.
@@ -52,7 +55,7 @@ if __name__ == '__main__':
     if args.dataset_type == 'cipher':
         ciper_dataset = CipherDataset('./data/initial_vocab.pkl', './data/sentiment_dataset_reviews.txt')
         output_file_path = "cipher_data.jsonl"
-        num_dataset = 12000
+        num_dataset = 200000
         train_num = 0.8 * num_dataset
         prompt = "decipher this sentence into a readable version"
         test_input = []
@@ -62,8 +65,8 @@ if __name__ == '__main__':
         with open(output_file_path, 'w') as output_file:
             for i, example in tqdm(zip(range(num_dataset), ciper_dataset)):
                 x, y = example
-                input = ' '.join([ciper_dataset.index_to_word[int(c)] for c in x]).replace(u'\u25A1','').strip() 
-                output = ' '.join([ciper_dataset.index_to_word[int(c)] for c in y]).replace(u'\u25A1','').strip()
+                input = ' '.join([ciper_dataset.index_to_word[int(c)] for c in x]).strip() 
+                output = ' '.join([ciper_dataset.index_to_word[int(c)] for c in y]).strip()
                 if i < train_num:
                     data = {"text":f'''[INST] {input} [/INST] {output} </s>'''}
                     output_file.write(json.dumps(data) + '\n')
