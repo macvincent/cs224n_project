@@ -55,7 +55,7 @@ if __name__ == '__main__':
     if args.dataset_type == 'cipher':
         ciper_dataset = CipherDataset('./data/initial_vocab.pkl', './data/sentiment_dataset_reviews.txt')
         output_file_path = "cipher_data.jsonl"
-        num_dataset = 200000
+        num_dataset = 5000
         train_num = 0.8 * num_dataset
         prompt = "decipher this sentence into a readable version"
         test_input = []
@@ -68,11 +68,11 @@ if __name__ == '__main__':
                 input = ' '.join([ciper_dataset.index_to_word[int(c)] for c in x]).strip() 
                 output = ' '.join([ciper_dataset.index_to_word[int(c)] for c in y]).strip()
                 if i < train_num:
-                    data = {"text":f'''[INST] {input} [/INST] {output} </s>'''}
+                    data = {"text":f'''incorrect: {input}\ncorrect: {output}\n'''}
                     output_file.write(json.dumps(data) + '\n')
                 else:
-                    test_input.append(f'''[INST] {input} [/INST] ''')
-                    test_output.append(f'''{output} </s>''')
+                    test_input.append(f'''incorrect: {input}\n''')
+                    test_output.append(f'''correct: {output}\n''')
 
         test_dataset = [test_input, test_output]
         with open('test_dataset.pickle', 'wb') as handle:
