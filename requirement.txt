@@ -1,0 +1,8 @@
+torch
+transformers
+datasets
+sentencepiece
+accelerate
+bitsandbytes
+peft
+python-dotenv
